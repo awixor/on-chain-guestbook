@@ -1,7 +1,8 @@
 import GuestbookCard from "@/components/GuestbookCard";
 import { BookIcon } from "@/lib/icons";
+import type { GuestbookEntry } from "@/lib/types";
 
-const SAMPLE_MESSAGES = [
+const SAMPLE_MESSAGES: GuestbookEntry[] = [
   {
     hash: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
     timestamp: "Jan 12, 2026 10:30 AM",
@@ -19,12 +20,6 @@ const SAMPLE_MESSAGES = [
     timestamp: "Jan 12, 2026 12:05 PM",
     message: "Decentralized greetings to everyone here.",
     explorerUrl: "https://etherscan.io/tx/0x98765",
-  },
-  {
-    hash: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    timestamp: "Jan 12, 2026 10:30 AM",
-    message: "Just signed the guestbook! This is awesome.",
-    explorerUrl: "https://etherscan.io/tx/0x12345",
   },
 ];
 
@@ -46,14 +41,8 @@ export default function Home() {
         </header>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {SAMPLE_MESSAGES.map((msg) => (
-            <GuestbookCard
-              key={msg.hash}
-              hash={msg.hash}
-              timestamp={msg.timestamp}
-              message={msg.message}
-              explorerUrl={msg.explorerUrl}
-            />
+          {SAMPLE_MESSAGES.map((msg, index) => (
+            <GuestbookCard key={`${msg.hash}-${index}`} {...msg} />
           ))}
         </div>
       </main>

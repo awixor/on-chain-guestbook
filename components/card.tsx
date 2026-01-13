@@ -1,8 +1,8 @@
 import { truncateHash } from "@/lib/utils";
 import type { GuestbookEntry } from "@/lib/types";
-import ExplorerLinkButton from "@/components/ExplorerLinkButton";
+import ExternalLinkButton from "@/components/external-link-button";
 
-export default function GuestbookCard({
+export default function Card({
   hash,
   timestamp,
   message,
@@ -41,8 +41,8 @@ export default function GuestbookCard({
         </div>
 
         <footer className="flex flex-col items-center gap-2 border-t border-zinc-100 bg-zinc-50/50 p-2 transition-colors duration-300 group-hover:bg-zinc-100/70 dark:border-zinc-800 dark:bg-zinc-800/50 dark:group-hover:bg-zinc-800/70">
-          <ExplorerLinkButton href={explorerUrl} label="View on etherscan" />
-          <ExplorerLinkButton href={explorerUrl} label="View on myetherscan" />
+          <ExternalLinkButton href={explorerUrl} label="View on etherscan" />
+          <ExternalLinkButton href={explorerUrl} label="View on myetherscan" />
         </footer>
       </article>
     </div>

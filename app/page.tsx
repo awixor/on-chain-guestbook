@@ -1,4 +1,5 @@
-import GuestbookCard from "@/components/GuestbookCard";
+import ConnectWallet from "@/components/wallet";
+import Card from "@/components/card";
 import { BookIcon } from "@/lib/icons";
 import type { GuestbookEntry } from "@/lib/types";
 
@@ -39,10 +40,10 @@ export default function Home() {
             Connect your wallet and leave a message.
           </p>
         </header>
-
+        <ConnectWallet />
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {SAMPLE_MESSAGES.map((msg, index) => (
-            <GuestbookCard key={`${msg.hash}-${index}`} {...msg} />
+            <Card key={`${msg.hash}-${index}`} {...msg} />
           ))}
         </div>
       </main>

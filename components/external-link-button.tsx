@@ -1,14 +1,14 @@
 import { ExternalLinkIcon } from "@/lib/icons";
 
-interface ExplorerLinkButtonProps {
+interface ExternalLinkButtonProps {
   href: string;
   label: string;
 }
 
-export default function ExplorerLinkButton({
+export default function ExternalLinkButton({
   href,
   label,
-}: ExplorerLinkButtonProps) {
+}: ExternalLinkButtonProps) {
   return (
     <a
       href={href}

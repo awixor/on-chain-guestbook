@@ -53,3 +53,43 @@ export const WalletIcon = ({ className = "w-5 h-5" }: IconProps) => (
     <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
   </svg>
 );
+
+export const InfoIcon = ({ className = "h-4 w-4" }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+export const SpinnerIcon = ({ className = "h-4 w-4" }: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={`${className} animate-spin`}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    {[...Array(12)].map((_, i) => (
+      <line
+        key={i}
+        x1="12"
+        y1="2"
+        x2="12"
+        y2="6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        opacity={(i + 1) / 12}
+        transform={`rotate(${i * 30} 12 12)`}
+      />
+    ))}
+  </svg>
+);

@@ -13,7 +13,15 @@ export default function ConnectorIcon({
   className = "h-4 w-4",
 }: ConnectorIconProps) {
   if (icon) {
-    return <Image src={icon} alt={name ?? ""} width={20} height={20} />;
+    return (
+      <Image
+        src={icon}
+        alt={name ?? ""}
+        width={20}
+        height={20}
+        className="h-5 w-5"
+      />
+    );
   }
 
   return <WalletIcon className={className} />;

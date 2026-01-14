@@ -8,6 +8,7 @@ import { useWaitForTransactionReceipt } from "wagmi";
 import EstimatedFees from "./estimated-fees";
 import Modal from "./modal";
 import TransactionDetails from "./transaction-details";
+import { parseEmojis } from "@/lib/utils";
 
 export default function GuestbookForm() {
   const [message, setMessage] = useState("");
@@ -79,8 +80,8 @@ export default function GuestbookForm() {
               <div className="relative">
                 <textarea
                   id="message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  value={parseEmojis(message)}
+                  onChange={(e) => setMessage(parseEmojis(e.target.value))}
                   placeholder="Leave your mark on the blockchain..."
                   rows={4}
                   maxLength={280}

@@ -1,3 +1,5 @@
+import { emojify } from "node-emoji";
+
 /**
  * Truncates a hash string to show first N and last M characters
  */
@@ -44,4 +46,8 @@ export function getMyExplorerUrl(hashOrAddress: string): string {
   const baseUrl = "https://block-explorer-chi.vercel.app";
 
   return `${baseUrl}/tx/${hashOrAddress}`;
+}
+
+export function parseEmojis(text: string): string {
+  return emojify(text);
 }

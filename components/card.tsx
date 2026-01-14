@@ -1,4 +1,4 @@
-import { truncateHash } from "@/lib/utils";
+import { truncateHash, parseEmojis } from "@/lib/utils";
 import type { GuestbookEntry } from "@/lib/types";
 import ExternalLinkButton from "@/components/external-link-button";
 
@@ -10,6 +10,8 @@ export default function Card({
   myExplorerUrl,
   hash,
 }: GuestbookEntry) {
+  const parsedMessage = parseEmojis(message);
+
   return (
     <div className="group relative h-full w-full rounded-2xl p-px transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50">
       <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-blue-500 via-purple-500 to-pink-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -38,7 +40,7 @@ export default function Card({
 
         <div className="flex-1 px-5 py-6">
           <blockquote className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 italic">
-            &quot;{message}&quot;
+            &quot;{parsedMessage}&quot;
           </blockquote>
         </div>
 

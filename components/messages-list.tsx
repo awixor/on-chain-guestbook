@@ -1,38 +1,64 @@
 "use client";
 
-import { useReadGuestbookGetMessages } from "@/lib/generated";
-import { formatTimestamp, getExplorerUrl } from "@/lib/utils";
+import {
+  useReadGuestbookGetMessages,
+  useWatchGuestbookNewMessageEvent,
+} from "@/lib/generated";
+import { formatTimestamp, getExplorerUrl, getMyExplorerUrl } from "@/lib/utils";
 import Card from "@/components/card";
 import { SpinnerIcon, MessageIcon } from "@/lib/icons";
 import { useChainId } from "wagmi";
+import { useGuestbookLogs } from "@/hooks/useGuestbookLogs";
+import { useMemo } from "react";
 
 export default function MessagesList() {
   const chainId = useChainId();
   const offset = 0;
-  const limit = 12;
+  const limit = 10;
 
-  const { data: fetchedMessages = [], isLoading } = useReadGuestbookGetMessages(
-    {
+  const { data: stateMessages = [], isLoading: isLoadingMessages } =
+    useReadGuestbookGetMessages({
       args: [BigInt(offset), BigInt(limit)],
-      // query: {
-      //   refetchInterval: 10000,
-      // },
-    }
-  );
+    });
+  const { data: logsData = [] } = useGuestbookLogs();
 
-  const formattedMessages = fetchedMessages.map((msg, index) => {
-    const uniqueHash = `${msg.sender}-${msg.timestamp}-${index}`;
-    const explorerUrl = getExplorerUrl(msg.sender, chainId);
-
-    return {
-      hash: uniqueHash,
-      timestamp: formatTimestamp(msg.timestamp),
-      message: msg.message,
-      explorerUrl,
-    };
+  useWatchGuestbookNewMessageEvent({
+    onLogs(logs) {
+      console.log(logs);
+    },
   });
 
-  if (isLoading) {
+  const formattedMessages = useMemo(() => {
+    return (
+      stateMessages as readonly {
+        sender: string;
+        message: string;
+        timestamp: bigint;
+      }[]
+    ).map((msg) => {
+      const matchingLog = logsData.find(
+        (log) =>
+          log.sender.toLowerCase() === msg.sender.toLowerCase() &&
+          log.message === msg.message &&
+          BigInt(log.timestamp) === msg.timestamp
+      );
+
+      const hash = matchingLog?.hash;
+      const explorerUrl = hash ? getExplorerUrl(hash, chainId) : "";
+      const myExplorerUrl = hash ? getMyExplorerUrl(hash) : "";
+
+      return {
+        sender: msg.sender,
+        timestamp: formatTimestamp(msg.timestamp),
+        message: msg.message,
+        explorerUrl,
+        myExplorerUrl,
+        hash,
+      };
+    });
+  }, [stateMessages, logsData, chainId]);
+
+  if (isLoadingMessages) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <div className="mb-4 flex h-16 w-16 items-center justify-center">
@@ -63,8 +89,8 @@ export default function MessagesList() {
 
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-      {formattedMessages.map((msg, index) => (
-        <Card key={`${msg.hash}-${index}`} {...msg} />
+      {formattedMessages.map((msg) => (
+        <Card key={`${msg.sender}-${msg.timestamp}`} {...msg} />
       ))}
     </div>
   );

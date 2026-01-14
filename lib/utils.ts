@@ -39,3 +39,9 @@ export function getExplorerUrl(
       : "https://etherscan.io";
   return `${baseUrl}/tx/${hashOrAddress}`;
 }
+
+export function getMyExplorerUrl(hashOrAddress: string): string {
+  const baseUrl = "https://block-explorer-chi.vercel.app";
+
+  return `${baseUrl}/tx/${hashOrAddress}`;
+}

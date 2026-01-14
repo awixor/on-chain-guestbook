@@ -3,10 +3,12 @@ import type { GuestbookEntry } from "@/lib/types";
 import ExternalLinkButton from "@/components/external-link-button";
 
 export default function Card({
-  hash,
+  sender,
   timestamp,
   message,
   explorerUrl,
+  myExplorerUrl,
+  hash,
 }: GuestbookEntry) {
   return (
     <div className="group relative h-full w-full rounded-2xl p-px transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl hover:shadow-zinc-200/50 dark:hover:shadow-zinc-900/50">
@@ -15,13 +17,13 @@ export default function Card({
         <header className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-5 py-3 transition-colors duration-300 group-hover:bg-zinc-100/70 dark:border-zinc-800 dark:bg-zinc-800/50 dark:group-hover:bg-zinc-800/70">
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-              Transaction Hash
+              Author
             </span>
             <code className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-              {truncateHash(hash)}
+              {truncateHash(sender)}
             </code>
           </div>
-          <div className="text-right">
+          <div className="flex flex-col gap-0.5 text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
               Timestamp
             </span>
@@ -41,8 +43,16 @@ export default function Card({
         </div>
 
         <footer className="flex flex-col items-center gap-2 border-t border-zinc-100 bg-zinc-50/50 p-2 transition-colors duration-300 group-hover:bg-zinc-100/70 dark:border-zinc-800 dark:bg-zinc-800/50 dark:group-hover:bg-zinc-800/70">
-          <ExternalLinkButton href={explorerUrl} label="View on etherscan" />
-          <ExternalLinkButton href={explorerUrl} label="View on myetherscan" />
+          <ExternalLinkButton
+            href={explorerUrl}
+            label="View on etherscan"
+            isLoading={!hash}
+          />
+          <ExternalLinkButton
+            href={myExplorerUrl}
+            label="View on my block explorer"
+            isLoading={!hash}
+          />
         </footer>
       </article>
     </div>

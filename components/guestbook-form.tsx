@@ -1,27 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CharacterCounter from "@/components/character-counter";
-import InfoBox from "@/components/info-box";
 import Button from "@/components/button";
+import { useWriteGuestbookPostMessage } from "@/lib/generated";
+import { useWaitForTransactionReceipt } from "wagmi";
+import EstimatedFees from "./estimated-fees";
+import Modal from "./modal";
+import TransactionDetails from "./transaction-details";
 
-interface GuestbookFormProps {
-  onSubmit?: (message: string) => void;
-  isPending?: boolean;
-}
-
-export default function GuestbookForm({
-  onSubmit,
-  isPending = false,
-}: GuestbookFormProps) {
+export default function GuestbookForm() {
   const [message, setMessage] = useState("");
+  const [hash, setHash] = useState<`0x${string}` | undefined>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const {
+    mutateAsync,
+    isPending: isWriting,
+    error: writeError,
+    reset: resetWrite,
+  } = useWriteGuestbookPostMessage();
+
+  const {
+    data: receipt,
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    error: receiptError,
+  } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  useEffect(() => {
+    if (isConfirmed) {
+      const timeoutId = setTimeout(() => {
+        setMessage("");
+        setIsModalOpen(true);
+        resetWrite();
+      }, 0);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isConfirmed, resetWrite]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && onSubmit) {
-      onSubmit(message.trim());
+    if (!message.trim() || isWriting || isConfirming) return;
+
+    try {
+      const txHash = await mutateAsync({
+        args: [message.trim()],
+      });
+      setHash(txHash);
+    } catch (error) {
+      console.error("Failed to post message:", error);
     }
   };
+
+  const isPending = isWriting || isConfirming;
+  const error = writeError || receiptError;
 
   return (
     <div className="mb-12 w-full">
@@ -54,22 +90,56 @@ export default function GuestbookForm({
               </div>
             </div>
 
-            <InfoBox
-              title="Estimated Gas Fee"
-              description="Gas preview will appear here"
-            />
+            <EstimatedFees message={message} />
+
+            {error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+                <p className="text-xs font-medium text-red-700 dark:text-red-400">
+                  {error ? error.message : "Transaction failed"}
+                </p>
+              </div>
+            )}
+
+            {isConfirmed && (
+              <div className="flex justify-between items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
+                <p className="text-xs font-medium text-green-700 dark:text-green-400">
+                  Message posted successfully!
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex w-fit cursor-pointer items-center gap-2 rounded-lg bg-green-100 px-3 py-1.5 text-[11px] font-bold text-green-800 transition-colors hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/60"
+                >
+                  View Transaction Details
+                </button>
+              </div>
+            )}
 
             <Button
               type="submit"
               isLoading={isPending}
-              loadingText="Posting..."
-              disabled={!message.trim()}
+              loadingText={
+                isWriting
+                  ? "Waiting for wallet..."
+                  : isConfirming
+                  ? "Confirming transaction..."
+                  : "Posting..."
+              }
+              disabled={!message.trim() || isPending}
             >
-              Post Message
+              {isConfirmed ? "Post Another Message" : "Post Message"}
             </Button>
           </div>
         </div>
       </form>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Transaction Details"
+      >
+        {receipt && <TransactionDetails receipt={receipt} />}
+      </Modal>
     </div>
   );
 }

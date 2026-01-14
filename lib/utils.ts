@@ -11,3 +11,31 @@ export function truncateHash(
   }
   return `${hash.slice(0, startLength)}...${hash.slice(-endLength)}`;
 }
+
+/**
+ * Formats a BigInt timestamp to a readable date string
+ */
+export function formatTimestamp(timestamp: bigint): string {
+  const date = new Date(Number(timestamp) * 1000);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Creates an explorer URL for a transaction or address
+ */
+export function getExplorerUrl(
+  hashOrAddress: string,
+  chainId: number = 11155111
+): string {
+  const baseUrl =
+    chainId === 11155111
+      ? "https://sepolia.etherscan.io"
+      : "https://etherscan.io";
+  return `${baseUrl}/tx/${hashOrAddress}`;
+}

@@ -1,29 +1,7 @@
 import ConnectWallet from "@/components/wallet";
 import GuestbookForm from "@/components/guestbook-form";
-import Card from "@/components/card";
+import MessagesList from "@/components/messages-list";
 import { BookIcon } from "@/lib/icons";
-import type { GuestbookEntry } from "@/lib/types";
-
-const SAMPLE_MESSAGES: GuestbookEntry[] = [
-  {
-    hash: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    timestamp: "Jan 12, 2026 10:30 AM",
-    message: "Just signed the guestbook! This is awesome.",
-    explorerUrl: "https://etherscan.io/tx/0x12345",
-  },
-  {
-    hash: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    timestamp: "Jan 12, 2026 11:15 AM",
-    message: "Hello from the blockchain world 🚀",
-    explorerUrl: "https://etherscan.io/tx/0xabcde",
-  },
-  {
-    hash: "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
-    timestamp: "Jan 12, 2026 12:05 PM",
-    message: "Decentralized greetings to everyone here.",
-    explorerUrl: "https://etherscan.io/tx/0x98765",
-  },
-];
 
 export default function Home() {
   return (
@@ -43,11 +21,7 @@ export default function Home() {
         </header>
         <ConnectWallet />
         <GuestbookForm />
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {SAMPLE_MESSAGES.map((msg, index) => (
-            <Card key={`${msg.hash}-${index}`} {...msg} />
-          ))}
-        </div>
+        <MessagesList />
       </main>
     </div>
   );

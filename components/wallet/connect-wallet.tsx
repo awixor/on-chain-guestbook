@@ -5,7 +5,7 @@ import NoWalletDetected from "@/components/wallet/no-wallet-detected";
 import ConnectedWalletState from "@/components/wallet/connected-wallet-state";
 import ConnectWalletButtons from "@/components/wallet/connect-wallet-buttons";
 
-enum ConnectionStatus {
+export enum ConnectionStatus {
   Connected = "connected",
   Disconnected = "disconnected",
   Reconnecting = "reconnecting",

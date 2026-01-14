@@ -16,15 +16,20 @@ export default function MessagesList() {
   const offset = 0;
   const limit = 10;
 
-  const { data: stateMessages = [], isLoading: isLoadingMessages } =
-    useReadGuestbookGetMessages({
-      args: [BigInt(offset), BigInt(limit)],
-    });
-  const { data: logsData = [] } = useGuestbookLogs();
+  const {
+    data: stateMessages = [],
+    isLoading: isLoadingMessages,
+    refetch: refetchState,
+  } = useReadGuestbookGetMessages({
+    args: [BigInt(offset), BigInt(limit)],
+  });
+
+  const { data: logsData = [], refetch: refetchLogs } = useGuestbookLogs();
 
   useWatchGuestbookNewMessageEvent({
-    onLogs(logs) {
-      console.log(logs);
+    onLogs() {
+      refetchState();
+      refetchLogs();
     },
   });
 

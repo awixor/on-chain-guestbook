@@ -9,11 +9,23 @@ import EstimatedFees from "./estimated-fees";
 import Modal from "./modal";
 import TransactionDetails from "./transaction-details";
 import { parseEmojis } from "@/lib/utils";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 export default function GuestbookForm() {
   const [message, setMessage] = useState("");
   const [hash, setHash] = useState<`0x${string}` | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const savedHash = localStorage.getItem(STORAGE_KEYS.PENDING_TX);
+
+    if (savedHash && savedHash.startsWith("0x")) {
+      const timeoutId = setTimeout(() => {
+        setHash(savedHash as `0x${string}`);
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, []);
 
   const {
     mutateAsync,
@@ -33,6 +45,7 @@ export default function GuestbookForm() {
 
   useEffect(() => {
     if (isConfirmed) {
+      localStorage.removeItem(STORAGE_KEYS.PENDING_TX);
       const timeoutId = setTimeout(() => {
         setMessage("");
         setIsModalOpen(true);
@@ -52,6 +65,7 @@ export default function GuestbookForm() {
         args: [message.trim()],
       });
       setHash(txHash);
+      localStorage.setItem(STORAGE_KEYS.PENDING_TX, txHash);
     } catch (error) {
       console.error("Failed to post message:", error);
     }
@@ -59,6 +73,12 @@ export default function GuestbookForm() {
 
   const isPending = isWriting || isConfirming;
   const error = writeError || receiptError;
+
+  useEffect(() => {
+    if (error) {
+      localStorage.removeItem(STORAGE_KEYS.PENDING_TX);
+    }
+  }, [error]);
 
   return (
     <div className="mb-12 w-full">
@@ -95,7 +115,7 @@ export default function GuestbookForm() {
 
             {error && (
               <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-                <p className="text-xs font-medium text-red-700 dark:text-red-400">
+                <p className="text-xs font-medium text-red-700 dark:text-red-400 wrap-break-word">
                   {error ? error.message : "Transaction failed"}
                 </p>
               </div>

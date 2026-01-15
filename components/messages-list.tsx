@@ -1,69 +1,56 @@
 "use client";
 
-import {
-  useReadGuestbookGetMessages,
-  useWatchGuestbookNewMessageEvent,
-} from "@/lib/generated";
+import { useWatchGuestbookNewMessageEvent } from "@/lib/generated";
 import { formatTimestamp, getExplorerUrl, getMyExplorerUrl } from "@/lib/utils";
 import MessagesListSkeleton from "@/components/skeletons/messages-list-skeleton";
 import Card from "@/components/card";
 import { MessageIcon } from "@/lib/icons";
 import { sepolia } from "wagmi/chains";
-import { useGuestbookLogs } from "@/hooks/useGuestbookLogs";
 import { useMemo } from "react";
+import { useGuestbookMessages } from "@/hooks/useGuestbookMessages";
 
 export default function MessagesList() {
   const chainId = sepolia.id;
-  const offset = 0;
-  const limit = 10;
 
   const {
-    data: stateMessages = [],
+    data: subgraphMessages = [],
     isLoading: isLoadingMessages,
-    refetch: refetchState,
-  } = useReadGuestbookGetMessages({
-    chainId,
-    args: [BigInt(offset), BigInt(limit)],
-  });
+    refetch,
+  } = useGuestbookMessages();
 
-  const { data: logsData = [], refetch: refetchLogs } = useGuestbookLogs();
-
+  // Listen for new messages to refetch the subgraph
   useWatchGuestbookNewMessageEvent({
     onLogs() {
-      refetchState();
-      refetchLogs();
+      // Small delay to allow subgraph to index
+      setTimeout(() => {
+        refetch();
+      }, 2000);
     },
   });
 
   const formattedMessages = useMemo(() => {
     return (
-      stateMessages as readonly {
+      subgraphMessages as {
+        transactionHash: string;
         sender: string;
+        timestamp: string;
         message: string;
-        timestamp: bigint;
       }[]
     ).map((msg) => {
-      const matchingLog = logsData.find(
-        (log) =>
-          log.sender.toLowerCase() === msg.sender.toLowerCase() &&
-          log.message === msg.message &&
-          BigInt(log.timestamp) === msg.timestamp
-      );
-
-      const hash = matchingLog?.hash;
+      const hash = msg.transactionHash;
       const explorerUrl = hash ? getExplorerUrl(hash, chainId) : "";
       const myExplorerUrl = hash ? getMyExplorerUrl(hash) : "";
 
       return {
         sender: msg.sender,
-        timestamp: formatTimestamp(msg.timestamp),
+        timestamp: formatTimestamp(BigInt(msg.timestamp)),
         message: msg.message,
         explorerUrl,
         myExplorerUrl,
         hash,
       };
     });
-  }, [stateMessages, logsData, chainId]);
+  }, [subgraphMessages, chainId]);
 
   if (isLoadingMessages) {
     return <MessagesListSkeleton />;

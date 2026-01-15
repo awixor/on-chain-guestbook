@@ -1,14 +1,12 @@
 "use client";
 
-import {
-  useReadGuestbookGetMessages,
-  useWatchGuestbookNewMessageEvent,
-} from "@/lib/generated";
+import { useWatchGuestbookNewMessageEvent } from "@/lib/generated";
 import { formatTimestamp, getExplorerUrl, getMyExplorerUrl } from "@/lib/utils";
 import Card from "@/components/card";
-import { SpinnerIcon, MessageIcon } from "@/lib/icons";
-import { useChainId } from "wagmi";
-import { useGuestbookLogs } from "@/hooks/useGuestbookLogs";
+import { MessageIcon } from "@/lib/icons";
+import { sepolia } from "wagmi/chains";
+import { useUserGuestbookMessages } from "@/hooks/useUserGuestbookMessages";
+import CardSkeleton from "@/components/skeletons/card-skeleton";
 import { useMemo } from "react";
 
 interface UserMessagesListProps {
@@ -18,68 +16,54 @@ interface UserMessagesListProps {
 export default function UserMessagesList({
   userAddress,
 }: UserMessagesListProps) {
-  const chainId = useChainId();
-  const offset = 0;
-  const limit = 100;
+  const chainId = sepolia.id;
 
   const {
-    data: stateMessages = [],
+    data: subgraphMessages = [],
     isLoading: isLoadingMessages,
-    refetch: refetchState,
-  } = useReadGuestbookGetMessages({
-    args: [BigInt(offset), BigInt(limit)],
-  });
+    refetch,
+  } = useUserGuestbookMessages(userAddress);
 
-  const { data: logsData = [], refetch: refetchLogs } = useGuestbookLogs();
-
+  // Listen for new messages to refetch the subgraph
   useWatchGuestbookNewMessageEvent({
     onLogs() {
-      refetchState();
-      refetchLogs();
+      // Small delay to allow subgraph to index
+      setTimeout(() => {
+        refetch();
+      }, 2000);
     },
   });
 
   const formattedMessages = useMemo(() => {
-    const userMessages = (
-      stateMessages as readonly {
+    return (
+      subgraphMessages as {
+        transactionHash: string;
         sender: string;
+        timestamp: string;
         message: string;
-        timestamp: bigint;
       }[]
-    ).filter((msg) => msg.sender.toLowerCase() === userAddress.toLowerCase());
-
-    return userMessages.map((msg) => {
-      const matchingLog = logsData.find(
-        (log) =>
-          log.sender.toLowerCase() === msg.sender.toLowerCase() &&
-          log.message === msg.message &&
-          BigInt(log.timestamp) === msg.timestamp
-      );
-
-      const hash = matchingLog?.hash;
+    ).map((msg) => {
+      const hash = msg.transactionHash;
       const explorerUrl = hash ? getExplorerUrl(hash, chainId) : "";
       const myExplorerUrl = hash ? getMyExplorerUrl(hash) : "";
 
       return {
         sender: msg.sender,
-        timestamp: formatTimestamp(msg.timestamp),
+        timestamp: formatTimestamp(BigInt(msg.timestamp)),
         message: msg.message,
         explorerUrl,
         myExplorerUrl,
         hash,
       };
     });
-  }, [stateMessages, logsData, chainId, userAddress]);
+  }, [subgraphMessages, chainId]);
 
   if (isLoadingMessages) {
     return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center">
-          <SpinnerIcon className="h-8 w-8 text-zinc-400 dark:text-zinc-500" />
-        </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Loading your messages from the blockchain...
-        </p>
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
       </div>
     );
   }

@@ -7,7 +7,7 @@ import { MessageIcon } from "@/lib/icons";
 import { sepolia } from "wagmi/chains";
 import CardSkeleton from "@/components/skeletons/card-skeleton";
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryUserMessages } from "@/services/guestbook.service";
 import { client } from "@/graphql/client";
 
@@ -19,26 +19,21 @@ export default function UserMessagesList({
   userAddress,
 }: UserMessagesListProps) {
   const chainId = sepolia.id;
+  const queryClient = useQueryClient();
 
-  const {
-    data: userMessages = [],
-    isLoading: isLoadingMessages,
-    refetch,
-  } = useQuery({
+  const { data: userMessages = [], isLoading: isLoadingMessages } = useQuery({
     queryKey: ["messages", "user", userAddress],
     queryFn: () => queryUserMessages({ client, vars: { userId: userAddress } }),
     enabled: !!userAddress,
   });
 
-  // Listen for new messages to refetch the subgraph
-  // useWatchGuestbookNewMessageEvent({
-  //   onLogs() {
-  //     // Small delay to allow subgraph to index
-  //     setTimeout(() => {
-  //       refetch();
-  //     }, 2000);
-  //   },
-  // });
+  useWatchGuestbookNewMessageEvent({
+    onLogs() {
+      queryClient.invalidateQueries({
+        queryKey: ["messages", "user", userAddress],
+      });
+    },
+  });
 
   const formattedMessages = useMemo(() => {
     return userMessages.map((msg) => {

@@ -7,29 +7,23 @@ import Card from "@/components/card";
 import { MessageIcon } from "@/lib/icons";
 import { sepolia } from "wagmi/chains";
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryAllMessages } from "@/services/guestbook.service";
 import { client } from "@/graphql/client";
 
 export default function MessagesList() {
   const chainId = sepolia.id;
+  const queryClient = useQueryClient();
 
-  const {
-    data: subgraphMessages = [],
-    isLoading: isLoadingMessages,
-    refetch,
-  } = useQuery({
-    queryKey: ["messages", "all"],
-    queryFn: () => queryAllMessages({ client }),
-  });
+  const { data: subgraphMessages = [], isLoading: isLoadingMessages } =
+    useQuery({
+      queryKey: ["messages", "all"],
+      queryFn: () => queryAllMessages({ client }),
+    });
 
-  // Listen for new messages to refetch the subgraph
   useWatchGuestbookNewMessageEvent({
     onLogs() {
-      // Small delay to allow subgraph to index
-      setTimeout(() => {
-        refetch();
-      }, 2000);
+      queryClient.invalidateQueries({ queryKey: ["messages", "all"] });
     },
   });
 

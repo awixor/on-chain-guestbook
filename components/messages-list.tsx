@@ -5,8 +5,9 @@ import {
   useWatchGuestbookNewMessageEvent,
 } from "@/lib/generated";
 import { formatTimestamp, getExplorerUrl, getMyExplorerUrl } from "@/lib/utils";
+import MessagesListSkeleton from "@/components/skeletons/messages-list-skeleton";
 import Card from "@/components/card";
-import { SpinnerIcon, MessageIcon } from "@/lib/icons";
+import { MessageIcon } from "@/lib/icons";
 import { useChainId } from "wagmi";
 import { useGuestbookLogs } from "@/hooks/useGuestbookLogs";
 import { useMemo } from "react";
@@ -64,16 +65,7 @@ export default function MessagesList() {
   }, [stateMessages, logsData, chainId]);
 
   if (isLoadingMessages) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center">
-          <SpinnerIcon className="h-8 w-8 text-zinc-400 dark:text-zinc-500" />
-        </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Loading messages from the blockchain...
-        </p>
-      </div>
-    );
+    return <MessagesListSkeleton />;
   }
 
   if (formattedMessages.length === 0) {

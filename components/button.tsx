@@ -1,4 +1,5 @@
 import { SpinnerIcon } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
@@ -20,20 +21,19 @@ export default function Button({
     <button
       {...props}
       disabled={isDisabled}
-      className={`
-        w-full px-6 py-3.5 text-sm font-semibold rounded-xl cursor-pointer
-        bg-zinc-900 text-white 
-        dark:bg-zinc-100 dark:text-zinc-900
-        enabled:hover:bg-zinc-800 
-        dark:enabled:hover:bg-zinc-200 
-        hover:bg-origin-border
-        enabled:hover:shadow-md
-        disabled:opacity-50 
-        disabled:cursor-not-allowed 
-        disabled:shadow-none
-        transition-all duration-200
-        ${className}
-      `}
+      className={cn(
+        "w-full px-6 py-3.5 text-sm font-semibold rounded-xl cursor-pointer",
+        "bg-zinc-900 text-white",
+        "dark:bg-zinc-100 dark:text-zinc-900",
+        "enabled:hover:bg-zinc-800 dark:enabled:hover:bg-zinc-200",
+        "hover:bg-origin-border",
+        "enabled:hover:shadow-md",
+        "disabled:opacity-50",
+        "disabled:cursor-not-allowed",
+        "disabled:shadow-none",
+        "transition-all duration-200",
+        className
+      )}
     >
       <span className="relative z-10 flex items-center justify-center gap-2">
         {isLoading ? (

@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { usePublicClient, useChainId } from "wagmi";
+import { usePublicClient } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 import { guestbookAbi, guestbookAddress } from "@/lib/generated";
 import { RawLogMessage } from "@/lib/types";
+
+import { sepolia } from "wagmi/chains";
 
 const fromBlock = BigInt(10035081);
 const eventName = "NewMessage";
 
 export function useGuestbookLogs() {
-  const publicClient = usePublicClient();
-  const chainId = useChainId();
+  const publicClient = usePublicClient({ chainId: sepolia.id });
+  const chainId = sepolia.id;
 
   return useQuery<RawLogMessage[]>({
     queryKey: ["guestbook-messages", chainId],
     queryFn: async () => {
-      if (!publicClient || !chainId) return [];
+      if (!publicClient) return [];
 
       const address =
         guestbookAddress[chainId as keyof typeof guestbookAddress];

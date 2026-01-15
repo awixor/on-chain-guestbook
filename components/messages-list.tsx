@@ -8,12 +8,12 @@ import { formatTimestamp, getExplorerUrl, getMyExplorerUrl } from "@/lib/utils";
 import MessagesListSkeleton from "@/components/skeletons/messages-list-skeleton";
 import Card from "@/components/card";
 import { MessageIcon } from "@/lib/icons";
-import { useChainId } from "wagmi";
+import { sepolia } from "wagmi/chains";
 import { useGuestbookLogs } from "@/hooks/useGuestbookLogs";
 import { useMemo } from "react";
 
 export default function MessagesList() {
-  const chainId = useChainId();
+  const chainId = sepolia.id;
   const offset = 0;
   const limit = 10;
 
@@ -22,6 +22,7 @@ export default function MessagesList() {
     isLoading: isLoadingMessages,
     refetch: refetchState,
   } = useReadGuestbookGetMessages({
+    chainId,
     args: [BigInt(offset), BigInt(limit)],
   });
 

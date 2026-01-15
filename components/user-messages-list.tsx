@@ -5,9 +5,11 @@ import { formatTimestamp, getExplorerUrl, getMyExplorerUrl } from "@/lib/utils";
 import Card from "@/components/card";
 import { MessageIcon } from "@/lib/icons";
 import { sepolia } from "wagmi/chains";
-import { useUserGuestbookMessages } from "@/hooks/useUserGuestbookMessages";
 import CardSkeleton from "@/components/skeletons/card-skeleton";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { queryUserMessages } from "@/services/guestbook.service";
+import { client } from "@/graphql/client";
 
 interface UserMessagesListProps {
   userAddress: string;
@@ -19,30 +21,27 @@ export default function UserMessagesList({
   const chainId = sepolia.id;
 
   const {
-    data: subgraphMessages = [],
+    data: userMessages = [],
     isLoading: isLoadingMessages,
     refetch,
-  } = useUserGuestbookMessages(userAddress);
-
-  // Listen for new messages to refetch the subgraph
-  useWatchGuestbookNewMessageEvent({
-    onLogs() {
-      // Small delay to allow subgraph to index
-      setTimeout(() => {
-        refetch();
-      }, 2000);
-    },
+  } = useQuery({
+    queryKey: ["messages", "user", userAddress],
+    queryFn: () => queryUserMessages({ client, vars: { userId: userAddress } }),
+    enabled: !!userAddress,
   });
 
+  // Listen for new messages to refetch the subgraph
+  // useWatchGuestbookNewMessageEvent({
+  //   onLogs() {
+  //     // Small delay to allow subgraph to index
+  //     setTimeout(() => {
+  //       refetch();
+  //     }, 2000);
+  //   },
+  // });
+
   const formattedMessages = useMemo(() => {
-    return (
-      subgraphMessages as {
-        transactionHash: string;
-        sender: string;
-        timestamp: string;
-        message: string;
-      }[]
-    ).map((msg) => {
+    return userMessages.map((msg) => {
       const hash = msg.transactionHash;
       const explorerUrl = hash ? getExplorerUrl(hash, chainId) : "";
       const myExplorerUrl = hash ? getMyExplorerUrl(hash) : "";
@@ -56,7 +55,7 @@ export default function UserMessagesList({
         hash,
       };
     });
-  }, [subgraphMessages, chainId]);
+  }, [userMessages, chainId]);
 
   if (isLoadingMessages) {
     return (

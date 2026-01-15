@@ -1,3 +1,10 @@
 import { GraphQLClient } from "graphql-request";
 
-export const client = new GraphQLClient("/graphql");
+const getGraphQLUrl = () => {
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/graphql`;
+  }
+  return "/graphql";
+};
+
+export const client = new GraphQLClient(getGraphQLUrl());

@@ -4,6 +4,7 @@ import type {
   GetUserMessagesQueryVariables,
 } from "@/generated/graphql";
 import { GET_ALL_MESSAGES, GET_USER_MESSAGES } from "@/lib/graphql/queries";
+import { NewMessage } from "@/generated/graphql"; // Import the specific type
 
 export type QueryAllMessagesArgs = {
   client: GraphQLClient;
@@ -21,7 +22,7 @@ export async function queryAllMessages({
     first: 10,
     skip: 0,
   },
-}: QueryAllMessagesArgs) {
+}: QueryAllMessagesArgs): Promise<NewMessage[]> {
   const data = await client.request(GET_ALL_MESSAGES, vars);
 
   return data.newMessages;
@@ -30,7 +31,7 @@ export async function queryAllMessages({
 export async function queryUserMessages({
   client,
   vars,
-}: QueryUserMessagesArgs) {
+}: QueryUserMessagesArgs): Promise<NewMessage[]> {
   const formattedVars = {
     ...vars,
     userId: vars?.userId?.toLowerCase(),

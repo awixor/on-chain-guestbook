@@ -13,6 +13,7 @@
     "@t3-oss/env-nextjs": "^0.13.10",
     "@tanstack/react-query": "^5.90.16",
     "clsx": "^2.1.1",
+    "graphql": "^16.12.0",
     "graphql-request": "^7.4.0",
     "next": "16.1.1",
     "node-emoji": "^2.2.0",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@graphql-codegen/cli": "6.1.1",
+    "@graphql-codegen/client-preset": "5.2.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -33,7 +35,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "@graphql-codegen/client-preset": "5.2.2"
+    "typescript": "^5"
   }
 }

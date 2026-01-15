@@ -15,7 +15,7 @@ export default function MessagesList() {
   const chainId = sepolia.id;
 
   const {
-    data: subgraphMessages,
+    data: subgraphMessages = [],
     isLoading: isLoadingMessages,
     refetch,
   } = useQuery({
@@ -34,14 +34,7 @@ export default function MessagesList() {
   });
 
   const formattedMessages = useMemo(() => {
-    return (
-      subgraphMessages as {
-        transactionHash: string;
-        sender: string;
-        timestamp: string;
-        message: string;
-      }[]
-    ).map((msg) => {
+    return subgraphMessages.map((msg) => {
       const hash = msg.transactionHash;
       const explorerUrl = hash ? getExplorerUrl(hash, chainId) : "";
       const myExplorerUrl = hash ? getMyExplorerUrl(hash) : "";

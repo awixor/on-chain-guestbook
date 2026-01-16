@@ -51,7 +51,7 @@ export function getExplorerUrl(
 export function getMyExplorerUrl(hashOrAddress: string): string {
   const baseUrl = "https://block-explorer-chi.vercel.app";
 
-  return `${baseUrl}/tx/${hashOrAddress}`;
+  return `${baseUrl}/sepolia/tx/${hashOrAddress}`;
 }
 
 export function parseEmojis(text: string): string {

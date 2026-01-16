@@ -4,22 +4,40 @@ import { useWatchGuestbookNewMessageEvent } from "@/lib/generated";
 import { formatTimestamp, getExplorerUrl, getMyExplorerUrl } from "@/lib/utils";
 import MessagesListSkeleton from "@/components/skeletons/messages-list-skeleton";
 import Card from "@/components/card";
-import { MessageIcon } from "@/lib/icons";
+import { MessageIcon, SpinnerIcon } from "@/lib/icons";
 import { sepolia } from "wagmi/chains";
 import { useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { queryAllMessages } from "@/services/guestbook.service";
 import { client } from "@/graphql/client";
+import { MessageFieldsFragment } from "@/generated/graphql";
 
 export default function MessagesList() {
   const chainId = sepolia.id;
   const queryClient = useQueryClient();
 
-  const { data: subgraphMessages = [], isLoading: isLoadingMessages } =
-    useQuery({
-      queryKey: ["messages", "all"],
-      queryFn: () => queryAllMessages({ client }),
-    });
+  const {
+    data,
+    isLoading: isLoadingMessages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["messages", "all"],
+    queryFn: ({ pageParam }) =>
+      queryAllMessages({
+        client,
+        vars: { first: 6, skip: pageParam },
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (
+      lastPage: MessageFieldsFragment[],
+      allPages: MessageFieldsFragment[][]
+    ) => {
+      if (!lastPage || lastPage.length < 6) return undefined;
+      return allPages.length * 6;
+    },
+  });
 
   useWatchGuestbookNewMessageEvent({
     onLogs() {
@@ -28,7 +46,9 @@ export default function MessagesList() {
   });
 
   const formattedMessages = useMemo(() => {
-    return subgraphMessages.map((msg) => {
+    if (!data) return [];
+    const allMessages = data.pages.flat();
+    return allMessages.map((msg: MessageFieldsFragment) => {
       const hash = msg.transactionHash;
       const explorerUrl = hash ? getExplorerUrl(hash, chainId) : "";
       const myExplorerUrl = hash ? getMyExplorerUrl(hash) : "";
@@ -42,7 +62,7 @@ export default function MessagesList() {
         hash,
       };
     });
-  }, [subgraphMessages, chainId]);
+  }, [data, chainId]);
 
   if (isLoadingMessages) {
     return <MessagesListSkeleton />;
@@ -65,10 +85,31 @@ export default function MessagesList() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-      {formattedMessages.map((msg) => (
-        <Card key={`${msg.sender}-${msg.timestamp}`} {...msg} />
-      ))}
+    <div className="space-y-12">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {formattedMessages.map((msg) => (
+          <Card key={`${msg.sender}-${msg.timestamp}-${msg.hash}`} {...msg} />
+        ))}
+      </div>
+
+      {hasNextPage && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-zinc-900 px-8 py-3 text-sm font-semibold text-white transition-all hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            {isFetchingNextPage ? (
+              <div className="flex items-center gap-2">
+                <SpinnerIcon className="h-4 w-4" />
+                <span>Loading...</span>
+              </div>
+            ) : (
+              "Load More"
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

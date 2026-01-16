@@ -3,13 +3,14 @@
 import { useWatchGuestbookNewMessageEvent } from "@/lib/generated";
 import { formatTimestamp, getExplorerUrl, getMyExplorerUrl } from "@/lib/utils";
 import Card from "@/components/card";
-import { MessageIcon } from "@/lib/icons";
+import { MessageIcon, SpinnerIcon } from "@/lib/icons";
 import { sepolia } from "wagmi/chains";
 import CardSkeleton from "@/components/skeletons/card-skeleton";
 import { useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { queryUserMessages } from "@/services/guestbook.service";
 import { client } from "@/graphql/client";
+import { MessageFieldsFragment } from "@/generated/graphql";
 
 interface UserMessagesListProps {
   userAddress: string;
@@ -21,9 +22,27 @@ export default function UserMessagesList({
   const chainId = sepolia.id;
   const queryClient = useQueryClient();
 
-  const { data: userMessages = [], isLoading: isLoadingMessages } = useQuery({
+  const {
+    data,
+    isLoading: isLoadingMessages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["messages", "user", userAddress],
-    queryFn: () => queryUserMessages({ client, vars: { userId: userAddress } }),
+    queryFn: ({ pageParam }) =>
+      queryUserMessages({
+        client,
+        vars: { userId: userAddress, first: 6, skip: pageParam },
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (
+      lastPage: MessageFieldsFragment[],
+      allPages: MessageFieldsFragment[][]
+    ) => {
+      if (!lastPage || lastPage.length < 6) return undefined;
+      return allPages.length * 6;
+    },
     enabled: !!userAddress,
   });
 
@@ -36,7 +55,9 @@ export default function UserMessagesList({
   });
 
   const formattedMessages = useMemo(() => {
-    return userMessages.map((msg) => {
+    if (!data) return [];
+    const allMessages = data.pages.flat();
+    return allMessages.map((msg: MessageFieldsFragment) => {
       const hash = msg.transactionHash;
       const explorerUrl = hash ? getExplorerUrl(hash, chainId) : "";
       const myExplorerUrl = hash ? getMyExplorerUrl(hash) : "";
@@ -50,7 +71,7 @@ export default function UserMessagesList({
         hash,
       };
     });
-  }, [userMessages, chainId]);
+  }, [data, chainId]);
 
   if (isLoadingMessages) {
     return (
@@ -91,9 +112,28 @@ export default function UserMessagesList({
       </div>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {formattedMessages.map((msg) => (
-          <Card key={`${msg.sender}-${msg.timestamp}`} {...msg} />
+          <Card key={`${msg.sender}-${msg.timestamp}-${msg.hash}`} {...msg} />
         ))}
       </div>
+
+      {hasNextPage && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-8 py-3 text-sm font-semibold text-white transition-all hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            {isFetchingNextPage ? (
+              <div className="flex items-center gap-2">
+                <SpinnerIcon className="h-4 w-4" />
+                <span>Loading...</span>
+              </div>
+            ) : (
+              "Load More"
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

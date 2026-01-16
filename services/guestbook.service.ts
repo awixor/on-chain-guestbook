@@ -24,7 +24,7 @@ export async function queryAllMessages({
 }: QueryAllMessagesArgs) {
   const data = await client.request(GET_ALL_MESSAGES, vars);
 
-  return data.newMessages;
+  return data.newMessages || [];
 }
 
 export async function queryUserMessages({
@@ -37,5 +37,5 @@ export async function queryUserMessages({
   };
 
   const data = await client.request(GET_USER_MESSAGES, formattedVars);
-  return data.newMessages;
+  return data.newMessages || [];
 }

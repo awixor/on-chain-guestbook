@@ -10,13 +10,26 @@ import { BookIcon } from "@/lib/icons";
 import ProfileButton from "@/components/profile-button";
 import { client } from "@/graphql/ssr.client";
 import { queryAllMessages } from "@/services/guestbook.service";
+import { MessageFieldsFragment } from "@/generated/graphql";
 
 export default async function Home() {
   const queryClient = new QueryClient();
 
-  await queryClient.prefetchQuery({
+  await queryClient.prefetchInfiniteQuery({
     queryKey: ["messages", "all"],
-    queryFn: () => queryAllMessages({ client }),
+    queryFn: ({ pageParam = 0 }) =>
+      queryAllMessages({
+        client,
+        vars: { first: 6, skip: pageParam },
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (
+      lastPage: MessageFieldsFragment[],
+      allPages: MessageFieldsFragment[][]
+    ) => {
+      if (!lastPage || lastPage.length < 6) return undefined;
+      return allPages.length * 6;
+    },
   });
 
   return (
